@@ -95,11 +95,6 @@ class Grid {
 				return 0;
 			}
 			this.cells[x][y].onClick(color);
-			if (swatch.color_index != 0){
-				this.cells[x][y].imapassable = true;
-			}else{
-				this.cells[x][y].imapassable = false;
-			}
 		}
 	}
 	midPointCircleDraw(x0, y0) {
@@ -149,26 +144,53 @@ class Grid {
 		}
 	}
 	drawPath(){
+		this.clearPath()
+		var pathFinder = new FindPath(grid.start_cell_object, grid.end_cell_object)
+		var path = pathFinder.getPath()
+		var prePath = pathFinder.getPrePath()
+		var delay = 7
+		prePath.forEach(cell =>{
+			if (cell != this.end_cell_object){
+				//cell.onClick("#ff8c00");
+				draw_delay(cell, "#ff8c00", delay)
+				delay+=7
+				
+			}
+		})
+		path.reverse().forEach(cell =>{
+			if (cell != this.end_cell_object){
+				//cell.onClick("#800080");
+				draw_delay(cell, "#800080", delay)
+				delay+=5
+			}
+		})
+	}
+	clearPath(){
+
 		this.cells.forEach(row =>{
 			row.forEach(cell =>{
 				if (!swatch.colors.includes(cell.color)){
 					this.draw_with_check(cell.X, cell.Y, swatch.colors[0])
 				}
+				cell.F = 0
+				cell.G = 0
+				cell.H = 0
 			});
 		});
-		var path = new FindPath(grid.start_cell_object, grid.end_cell_object).getPath()
-		path.forEach(cell =>{
-			if (cell != this.end_cell_object){
-				cell.onClick("#800080");
-			}
-		})
 	}
 }
-
+async function draw_delay(cell, color, ms){
+	await sleep(ms)
+	cell.onClick(color);
+}
+function sleep(ms) {
+	// add ms millisecond timeout before promise resolution
+	return new Promise(resolve => setTimeout(resolve, ms))
+  }
 class Cell {
 
 	constructor(x_index, y_index, size) {
-		this.padding = 1;
+		this.padding = 0.4;
 		this.size = size;
 		this.x = x_index * this.size;
 		this.y = y_index * this.size;
@@ -213,12 +235,18 @@ class Cell {
 			this.y+this.padding, 
 			this.size-this.padding*2, 
 			this.size-this.padding*2);
-
+		if (this.color != "#808080"){
+			this.imapassable = false;
+		}else{
+			this.imapassable = true;
+		}
 		if (this.isHovered) {
 			ctx.strokeStyle = "#00f";
 			ctx.strokeRect(this.x, this.y, this.size, this.size);
 			ctx.font = "15px Arial";
 			ctx.fillStyle = "#000000";
+			
+			ctx.fillText(`Pass:${this.imapassable}`, this.x-50, this.y+5);
 			ctx.fillText(`F:${this.F}`, this.x-20, this.y-10);
 			ctx.fillText(`G:${this.G}`, this.x-20, this.y-25);
 			ctx.fillText(`H:${this.H}`, this.x-20, this.y-40);
@@ -290,8 +318,8 @@ class FindPath {
 				}
 			});
 			this.processed.push(current);
-			this.toSearch.pop(this.toSearch.indexOf(current));
-			grid.draw_with_check(current.X, current.Y, "#ff8c00")
+			this.toSearch.splice(this.toSearch.indexOf(current), 1);
+			//grid.draw_with_check(current.X, current.Y, "#ff8c00")
 			//current.onClick("#ff8c00");
 
 			if (current == this.endCell){
@@ -312,7 +340,7 @@ class FindPath {
 				if (!neighbor.imapassable && !this.processed.includes(neighbor)){
 					var inSearch = this.toSearch.includes(neighbor);
 					var cost = current.G + current.getDistance(neighbor);
-
+					
 					if (!inSearch || cost < neighbor.G){
 						neighbor.setG(cost);
 						neighbor.setConnection(current);
@@ -327,5 +355,8 @@ class FindPath {
 			})
 		}
 		return null;
+	}
+	getPrePath(){
+		return this.processed;
 	}
 }

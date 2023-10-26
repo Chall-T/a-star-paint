@@ -1,8 +1,7 @@
 
-// setting up canvas and constants
-const rows = 40;
-const columns = 25;
-const cell_size = 20; // 10x10 grid
+const rows = 80;
+const columns = 50;
+const cell_size = 10;
 
 const c = document.querySelector('canvas');
 const c_i = document.querySelector('#cell-index');
@@ -13,7 +12,7 @@ var grid, swatch;
 
 const def_color_array = ["#808080", "#00e600", "#e60000", "#882FF6", "#37B6F6"];
 
-/// MOUSE INPUT SECTION
+
 c.addEventListener("mousemove",(e)=> {
 	// mouse_coordinate - element_position_offset - border_width
     mouse.x = e.clientX-c.offsetLeft-20;
@@ -21,7 +20,7 @@ c.addEventListener("mousemove",(e)=> {
 });
 c.addEventListener("mousedown",(e)=> mouse.isClicked = true);
 c.addEventListener("mouseup",(e)=> {mouse.isClicked = false; grid.drawPath()});
-/// MOUSE INPUT SECTION
+
 
 // Initialization
 function init() {
@@ -31,13 +30,11 @@ function init() {
 	grid.cells[grid.start_cell[0]][grid.start_cell[1]].onClick(swatch.colors[2]);
 	grid.cells[grid.end_cell[0]][grid.end_cell[1]].onClick(swatch.colors[3]);
 	grid.drawPath()
-	// setup code here
 
     animate();
 	
 }
 
-// animation loop
 function animate() {
     requestAnimationFrame(animate);
 	ctx.clearRect(0, 0, rows*cell_size, columns*cell_size);
