@@ -9,7 +9,8 @@ class Grid {
 		this.start_cell = [5, parseInt(this.column_count/2)];
 		this.end_cell = [this.row_count-5, parseInt(this.column_count/2)];
 		this.cells = [];
-		console.log(this.start_cell)
+
+		this.generationId = 0
 
 		for(var x=0; x<this.row_count; x++) {
 			var row = [];
@@ -144,6 +145,7 @@ class Grid {
 		}
 	}
 	drawPath(){
+		this.generationId ++;
 		this.clearPath()
 		var pathFinder = new FindPath(grid.start_cell_object, grid.end_cell_object)
 		var path = pathFinder.getPath()
@@ -152,16 +154,16 @@ class Grid {
 		prePath.forEach(cell =>{
 			if (cell != this.end_cell_object){
 				//cell.onClick("#ff8c00");
-				draw_delay(cell, "#ff8c00", delay)
-				delay+=7
+				draw_delay(cell, "#ff8c00", delay, this.generationId)
+				delay+=2
 				
 			}
 		})
 		path.reverse().forEach(cell =>{
 			if (cell != this.end_cell_object){
 				//cell.onClick("#800080");
-				draw_delay(cell, "#800080", delay)
-				delay+=5
+				draw_delay(cell, "#800080", delay, this.generationId)
+				delay+=2
 			}
 		})
 	}
@@ -179,8 +181,15 @@ class Grid {
 		});
 	}
 }
-async function draw_delay(cell, color, ms){
+async function draw_delay(cell, color, ms, generationId){
 	await sleep(ms)
+	if ([cell.X, cell.Y].toString() === grid.start_cell.toString()){
+		return 0;
+	}
+
+	if (grid.generationId != generationId){
+		return 0;
+	}
 	cell.onClick(color);
 }
 function sleep(ms) {
@@ -246,10 +255,9 @@ class Cell {
 			ctx.font = "15px Arial";
 			ctx.fillStyle = "#000000";
 			
-			ctx.fillText(`Pass:${this.imapassable}`, this.x-50, this.y+5);
-			ctx.fillText(`F:${this.F}`, this.x-20, this.y-10);
-			ctx.fillText(`G:${this.G}`, this.x-20, this.y-25);
-			ctx.fillText(`H:${this.H}`, this.x-20, this.y-40);
+			ctx.fillText(`F:${this.F}`, this.x-30, this.y-10);
+			ctx.fillText(`G:${this.G}`, this.x-30, this.y-25);
+			ctx.fillText(`H:${this.H}`, this.x-30, this.y-40);
 		}
 		
 	}
@@ -307,10 +315,6 @@ class FindPath {
 	}
 	getPath(){
 		while (this.toSearch.length>0 && ! this.stop){
-			if (this.processed.length > 10000){
-				this.stop = true
-				console.log('Force stop')
-			}
 			var current = this.toSearch[0];
 			this.toSearch.forEach(t => {
 				if (t.F < current.F || t.F == current.F && t.H < current.H){
